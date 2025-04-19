@@ -29,6 +29,15 @@
       font-weight: bold;
       cursor: pointer;
     }
+    select {
+      margin-top: 1rem;
+      background: #1f2833;
+      color: #66fcf1;
+      border: 1px solid #45a29e;
+      padding: 0.5rem;
+      width: 100%;
+      font-family: monospace;
+    }
     #response {
       margin-top: 2rem;
       white-space: pre-wrap;
@@ -48,15 +57,55 @@
 
   <h1>Meili Agent Payload Launcher</h1>
   <p>Paste your full JSON payload below and submit it to the webhook.</p>
-  
+
   <textarea id="jsonInput" placeholder='Paste full JSON payload here...'></textarea>
   <br />
   <button onclick="sendPayload()">🚀 Send to Meili</button>
+  <button onclick="savePayload()">💾 Save Payload</button>
+
+  <select id="historySelect" onchange="loadFromHistory()">
+    <option value="">⬇️ Load Recent Payload</option>
+  </select>
 
   <div id="response"></div>
 
   <script>
     const webhookURL = "https://meili-zapier-proxy.onrender.com/meili-webhook";
+    const historyKey = "meili_payload_history";
+
+    function savePayload() {
+      const val = document.getElementById("jsonInput").value;
+      try {
+        const parsed = JSON.parse(val); // verify it's valid JSON
+        let history = JSON.parse(localStorage.getItem(historyKey)) || [];
+        history.unshift(parsed);
+        if (history.length > 10) history = history.slice(0, 10);
+        localStorage.setItem(historyKey, JSON.stringify(history));
+        updateHistoryDropdown();
+        alert("✅ Payload saved!");
+      } catch (e) {
+        alert("❌ Invalid JSON. Fix before saving.");
+      }
+    }
+
+    function updateHistoryDropdown() {
+      const history = JSON.parse(localStorage.getItem(historyKey)) || [];
+      const select = document.getElementById("historySelect");
+      select.innerHTML = `<option value="">⬇️ Load Recent Payload</option>`;
+      history.forEach((item, idx) => {
+        const opt = document.createElement("option");
+        opt.value = idx;
+        opt.innerText = item.task_id || `Payload ${idx + 1}`;
+        select.appendChild(opt);
+      });
+    }
+
+    function loadFromHistory() {
+      const idx = document.getElementById("historySelect").value;
+      if (idx === "") return;
+      const history = JSON.parse(localStorage.getItem(historyKey)) || [];
+      document.getElementById("jsonInput").value = JSON.stringify(history[idx], null, 2);
+    }
 
     async function sendPayload() {
       const input = document.getElementById("jsonInput").value;
@@ -79,17 +128,5 @@
         });
 
         const body = await res.text();
-
         if (res.ok) {
-          responseBox.innerHTML = `<span class="success">✅ Success (${res.status}):</span>\n${body}`;
-        } else {
-          responseBox.innerHTML = `<span class="error">❌ Failed (${res.status}):</span>\n${body}`;
-        }
-      } catch (err) {
-        responseBox.innerHTML = `<span class="error">❌ Network error: ${err.message}</span>`;
-      }
-    }
-  </script>
-
-</body>
-</html>
+          responseBox.innerHTML = `<span class="success">✅ Success (${res.status}):</span>\n${body
