@@ -1,25 +1,21 @@
 from flask import Flask, request, jsonify
-import requests
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)  # ✅ Enable CORS for all routes
 
-ZAPIER_WEBHOOK = "https://hooks.zapier.com/hooks/catch/22554641/2x4wdvm/"
+@app.route('/meili-webhook', methods=['POST'])
+def meili_webhook():
+    data = request.json
 
-@app.route("/")
-def status():
-    return jsonify({"message": "Proxy is live.", "status": "online"})
+    if not data:
+        return jsonify({"error": "No JSON payload received"}), 400
 
-@app.route("/meili-webhook", methods=["POST"])
-def proxy():
-    payload = request.json
-    try:
-        print("Received payload:", payload)
-        r = requests.post(ZAPIER_WEBHOOK, json=payload)
-        print("Sent to Zapier. Status Code:", r.status_code)
-        return jsonify({"status": "forwarded", "zapier_response": r.status_code}), 200
-    except Exception as e:
-        print("Error forwarding to Zapier:", str(e))
-        return jsonify({"status": "error", "message": str(e)}), 500
+    # Debug log (optional)
+    print("Received payload:", data)
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=3000)
+    # Simulate forwarding to Make/Zapier or just return success for now
+    return jsonify({"message": "Payload received", "task_id": data.get("task_id")}), 200
+
+if __name__ == '__main__':
+    app.run()
