@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Meili Agent Payload Launcher</title>
+  <link rel="icon" href="data:,"> <!-- Silence favicon error -->
   <style>
     body {
       font-family: monospace;
@@ -60,18 +61,23 @@
 
   <textarea id="jsonInput" placeholder='Paste full JSON payload here...'></textarea>
   <br />
-  <button onclick="sendPayload()">🚀 Send to Meili</button>
-  <button onclick="savePayload()">💾 Save Payload</button>
+  <button id="sendButton">🚀 Send to Meili</button>
+  <button id="saveButton">💾 Save Payload</button>
 
-  <select id="historySelect" onchange="loadFromHistory()">
+  <select id="historySelect">
     <option value="">⬇️ Load Recent Payload</option>
   </select>
 
   <div id="response"></div>
 
+  <!-- JavaScript moved to bottom for correct scope -->
   <script>
     const webhookURL = "https://meili-zapier-proxy.onrender.com/meili-webhook";
     const historyKey = "meili_payload_history";
+
+    document.getElementById("sendButton").onclick = sendPayload;
+    document.getElementById("saveButton").onclick = savePayload;
+    document.getElementById("historySelect").onchange = loadFromHistory;
 
     function savePayload() {
       const val = document.getElementById("jsonInput").value;
@@ -129,4 +135,20 @@
 
         const body = await res.text();
         if (res.ok) {
-          responseBox.innerHTML = `<span class="success">✅ Success (${res.status}):</span>\n${body
+          responseBox.innerHTML = `<span class="success">✅ Success (${res.status}):</span>\n${body}`;
+          navigator.clipboard.writeText(body).then(() => {
+            responseBox.innerHTML += "\n📋 Response copied to clipboard.";
+          });
+        } else {
+          responseBox.innerHTML = `<span class="error">❌ Failed (${res.status}):</span>\n${body}`;
+        }
+      } catch (err) {
+        responseBox.innerHTML = `<span class="error">❌ Network error: ${err.message}</span>`;
+      }
+    }
+
+    updateHistoryDropdown();
+  </script>
+
+</body>
+</html>
