@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Meili Agent Payload Launcher</title>
-  <link rel="icon" href="data:,"> <!-- Silence favicon error -->
+  <link rel="icon" href="data:,">
   <style>
     body {
       font-family: monospace;
@@ -70,19 +70,21 @@
 
   <div id="response"></div>
 
-  <!-- JavaScript moved to bottom for correct scope -->
   <script>
     const webhookURL = "https://meili-zapier-proxy.onrender.com/meili-webhook";
     const historyKey = "meili_payload_history";
 
-    document.getElementById("sendButton").onclick = sendPayload;
-    document.getElementById("saveButton").onclick = savePayload;
-    document.getElementById("historySelect").onchange = loadFromHistory;
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("sendButton").addEventListener("click", sendPayload);
+      document.getElementById("saveButton").addEventListener("click", savePayload);
+      document.getElementById("historySelect").addEventListener("change", loadFromHistory);
+      updateHistoryDropdown();
+    });
 
     function savePayload() {
       const val = document.getElementById("jsonInput").value;
       try {
-        const parsed = JSON.parse(val); // verify it's valid JSON
+        const parsed = JSON.parse(val);
         let history = JSON.parse(localStorage.getItem(historyKey)) || [];
         history.unshift(parsed);
         if (history.length > 10) history = history.slice(0, 10);
@@ -146,8 +148,6 @@
         responseBox.innerHTML = `<span class="error">❌ Network error: ${err.message}</span>`;
       }
     }
-
-    updateHistoryDropdown();
   </script>
 
 </body>
