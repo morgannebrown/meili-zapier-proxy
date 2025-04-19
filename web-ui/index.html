@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Meili Agent Payload Launcher</title>
+  <style>
+    body {
+      font-family: monospace;
+      background: #0b0c10;
+      color: #c5c6c7;
+      padding: 2rem;
+    }
+    textarea {
+      width: 100%;
+      height: 300px;
+      background: #1f2833;
+      color: #66fcf1;
+      border: none;
+      padding: 1rem;
+      font-family: monospace;
+      font-size: 14px;
+    }
+    button {
+      background: #45a29e;
+      color: #0b0c10;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      margin-top: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    #response {
+      margin-top: 2rem;
+      white-space: pre-wrap;
+      background: #1f2833;
+      padding: 1rem;
+      border-left: 3px solid #66fcf1;
+    }
+    .error {
+      color: #ff6161;
+    }
+    .success {
+      color: #66ff99;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Meili Agent Payload Launcher</h1>
+  <p>Paste your full JSON payload below and submit it to the webhook.</p>
+  
+  <textarea id="jsonInput" placeholder='Paste full JSON payload here...'></textarea>
+  <br />
+  <button onclick="sendPayload()">🚀 Send to Meili</button>
+
+  <div id="response"></div>
+
+  <script>
+    const webhookURL = "https://meili-zapier-proxy.onrender.com/meili-webhook";
+
+    async function sendPayload() {
+      const input = document.getElementById("jsonInput").value;
+      const responseBox = document.getElementById("response");
+      responseBox.innerHTML = "Sending...";
+
+      let parsed;
+      try {
+        parsed = JSON.parse(input);
+      } catch (e) {
+        responseBox.innerHTML = `<span class="error">❌ Invalid JSON: ${e.message}</span>`;
+        return;
+      }
+
+      try {
+        const res = await fetch(webhookURL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(parsed),
+        });
+
+        const body = await res.text();
+
+        if (res.ok) {
+          responseBox.innerHTML = `<span class="success">✅ Success (${res.status}):</span>\n${body}`;
+        } else {
+          responseBox.innerHTML = `<span class="error">❌ Failed (${res.status}):</span>\n${body}`;
+        }
+      } catch (err) {
+        responseBox.innerHTML = `<span class="error">❌ Network error: ${err.message}</span>`;
+      }
+    }
+  </script>
+
+</body>
+</html>
