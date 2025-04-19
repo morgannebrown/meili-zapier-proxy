@@ -24,5 +24,24 @@ export default async function handler(req, res) {
 
   console.log("✅ Payload received:", data);
 
-  return res.status(200).json({ message: "Payload received", task_id: data.task_id });
+  try {
+    const zapierRes = await fetch('https://hooks.zapier.com/hooks/catch/22554641/2x4wdvm/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+
+    const zapierText = await zapierRes.text();
+    console.log("➡️ Forwarded to Zapier:", zapierRes.status, zapierText);
+
+    return res.status(200).json({
+      message: "Payload forwarded to Zapier",
+      zapier_status: zapierRes.status,
+      task_id: data.task_id
+    });
+
+  } catch (err) {
+    console.error("❌ Error forwarding to Zapier:", err);
+    return res.status(500).json({ error: "Failed to forward to Zapier" });
+  }
 }
