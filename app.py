@@ -13,9 +13,12 @@ def status():
 def proxy():
     payload = request.json
     try:
+        print("Received payload:", payload)
         r = requests.post(ZAPIER_WEBHOOK, json=payload)
+        print("Sent to Zapier. Status Code:", r.status_code)
         return jsonify({"status": "forwarded", "zapier_response": r.status_code}), 200
     except Exception as e:
+        print("Error forwarding to Zapier:", str(e))
         return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == "__main__":
